@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Gastômetro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="stylesheet" href="./style.css"/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
+<!-- Chart.js for charts -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+</style>
+</head>
+<body>
+
+<!-- Boot Screen -->
+<div id="boot-screen" class="active">
+  <div style="text-align:center;color:#333;">
+    <div style="font-size:48px;margin-bottom:12px;" class="spin-anim">⚙️</div>
+    <p style="font-family:'Syne',sans-serif;">Carregando...</p>
+  </div>
+</div>
+
+<!-- Login Screen -->
+<div id="login-screen">
+  <div class="login-wrap">
+    <div class="login-logo login-card" style="background:transparent;border:none;padding:0;">
+      <div class="login-logo-icon float-anim">💰</div>
+      <h1 style="font-size:28px;font-weight:800;letter-spacing:-1px;margin-top:0;">Gastômetro</h1>
+      <p style="font-size:13px;color:#555;margin-top:4px;">Controle total dos seus gastos</p>
+    </div>
+    <div class="login-card" style="margin-top:0;">
+      <div class="mode-tabs" id="mode-tabs">
+        <button class="mode-tab active" data-mode="login" onclick="switchMode('login')">Entrar</button>
+        <button class="mode-tab" data-mode="register" onclick="switchMode('register')">Criar conta</button>
+      </div>
+      <div id="login-err" class="err-box" style="display:none;"></div>
+
+      <!-- Login form -->
+      <div id="form-login">
+        <div class="form-group">
+          <label class="form-label">E-mail</label>
+          <input class="inp" id="login-email" type="email" placeholder="joao@email.com" onkeydown="if(event.key==='Enter')doLogin()"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Senha</label>
+          <div class="inp-wrap">
+            <input class="inp" id="login-pass" type="password" placeholder="Sua senha" onkeydown="if(event.key==='Enter')doLogin()"/>
+            <button class="eye-btn" onclick="togglePass('login-pass',this)">👁️</button>
+          </div>
+        </div>
+        <button class="btn-primary" onclick="doLogin()" id="btn-login">Entrar</button>
+        <div class="divider"><div class="divider-line"></div><span>ou</span><div class="divider-line"></div></div>
+        <button class="btn-google" onclick="switchMode('google-name')">
+          <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+          Continuar com Google
+        </button>
+      </div>
+
+      <!-- Register form -->
+      <div id="form-register" style="display:none;">
+        <div class="form-group">
+          <label class="form-label">Nome completo</label>
+          <input class="inp" id="reg-name" type="text" placeholder="João Silva"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">E-mail</label>
+          <input class="inp" id="reg-email" type="email" placeholder="joao@email.com"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Senha</label>
+          <div class="inp-wrap">
+            <input class="inp" id="reg-pass" type="password" placeholder="Mínimo 6 caracteres" onkeydown="if(event.key==='Enter')doRegister()"/>
+            <button class="eye-btn" onclick="togglePass('reg-pass',this)">👁️</button>
+          </div>
+        </div>
+        <button class="btn-primary" onclick="doRegister()" id="btn-register">Criar conta</button>
+        <div class="divider"><div class="divider-line"></div><span>ou</span><div class="divider-line"></div></div>
+        <button class="btn-google" onclick="switchMode('google-name')">
+          <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+          Continuar com Google
+        </button>
+      </div>
+
+      <!-- Google name form -->
+      <div id="form-google" style="display:none;">
+        <div style="text-align:center;margin-bottom:20px;">
+          <div style="font-size:40px;margin-bottom:8px;">🔑</div>
+          <p style="font-size:15px;font-weight:700;">Entrar com Google</p>
+          <p style="font-size:12px;color:#555;margin-top:4px;">Informe seus dados Google para continuar</p>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Seu nome</label>
+          <input class="inp" id="google-name" type="text" placeholder="João Silva"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">E-mail Google</label>
+          <input class="inp" id="google-email" type="email" placeholder="joao@gmail.com"/>
+        </div>
+        <button class="btn-primary" onclick="doGoogleLogin()">✓ Confirmar e entrar</button>
+        <button onclick="switchMode('login')" style="width:100%;background:transparent;color:#555;border:none;font-size:13px;margin-top:12px;padding:8px;">← Voltar</button>
+      </div>
+    </div>
+    <p class="login-footer">Seus dados ficam salvos e seguros neste dispositivo</p>
+  </div>
+</div>
+
+<!-- App Screen -->
+<div id="app-screen" style="display:none;flex-direction:column;min-height:100vh;">
+  <!-- Topbar -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="topbar-logo">💰</div>
+      <span class="topbar-title">Gastômetro</span>
+      <span class="saving-badge pulse-anim" id="saving-badge" style="display:none;">salvando…</span>
+    </div>
+    <div class="topbar-right">
+      <button class="btn-sm" id="btn-budget-open" onclick="openBudgetModal()">Orçamento: R$ 5.000,00</button>
+      <button class="btn-sm" onclick="exportCSV()">📥</button>
+      <button class="btn-danger-sm" onclick="openClearAll()">🗑️</button>
+      <button class="avatar-btn" onclick="openProfile()">
+        <div class="avatar-circle" id="topbar-avatar-initials"></div>
+      </button>
+    </div>
+  </div>
+
+  <div class="main-content">
+    <!-- Quick Add -->
+    <div class="quick-add" id="quick-add-bar">
+      <span class="quick-add-icon">⚡</span>
+      <input id="quick-input" placeholder='Digite: "mecânico 500", "mercado 320,50", "uber 45"...' onkeydown="if(event.key==='Enter')handleQuickAdd()"/>
+      <button class="btn-add-primary" onclick="handleQuickAdd()">Adicionar</button>
+      <button class="btn-add-detail" onclick="openAddModal()" title="Detalhes">⊕</button>
+    </div>
+
+    <!-- Filters row -->
+    <div class="filters-row">
+      <div class="period-row">
+        <button class="pill active" data-period="week" onclick="setPeriod('week')">Esta semana</button>
+        <button class="pill" data-period="month" onclick="setPeriod('month')">Este mês</button>
+        <button class="pill" data-period="year" onclick="setPeriod('year')">Este ano</button>
+      </div>
+      <div class="tabs-row">
+        <button class="tab-btn active" data-tab="dashboard" onclick="setTab('dashboard')">📊 Dashboard</button>
+        <button class="tab-btn" data-tab="gastos" onclick="setTab('gastos')">💸 Gastos</button>
+        <button class="tab-btn" data-tab="metas" onclick="setTab('metas')">🎯 Metas</button>
+        <button class="tab-btn" data-tab="ai" onclick="setTab('ai')">✨ Rico IA</button>
+      </div>
+    </div>
+
+    <!-- Dashboard Tab -->
+    <div id="tab-dashboard" class="tab-panel active">
+      <div class="stat-cards" id="stat-cards"></div>
+      <div class="budget-bar-wrap">
+        <div class="budget-bar-header">
+          <span class="budget-bar-label">Orçamento mensal</span>
+          <span class="budget-bar-pct" id="budget-pct-label">0%</span>
+        </div>
+        <div class="budget-bar-track">
+          <div class="budget-bar-fill" id="budget-bar-fill">
+            <div class="budget-bar-dot" id="budget-bar-dot" style="display:none;"></div>
+          </div>
+        </div>
+        <div class="budget-bar-labels">
+          <span>R$ 0</span>
+          <span id="budget-max-label">R$ 5.000,00</span>
+        </div>
+      </div>
+      <div class="charts-grid">
+        <div class="chart-card">
+          <div class="chart-title">Evolução</div>
+          <div class="chart-canvas-wrap"><canvas id="area-chart"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Por categoria</div>
+          <div id="pie-container"></div>
+        </div>
+      </div>
+      <div id="recurring-section" style="display:none;" class="recurring-wrap">
+        <div class="recurring-title" id="recurring-title"></div>
+        <div class="recurring-list" id="recurring-list"></div>
+      </div>
+      <div id="top-section" style="display:none;" class="top-wrap">
+        <div class="top-title">Top gastos</div>
+        <div id="top-list"></div>
+      </div>
+      <div id="empty-dashboard" class="empty-state" style="display:none;">
+        <div class="icon">💸</div>
+        <h3>Nenhum gasto ainda</h3>
+        <p>Use a barra acima para adicionar seu primeiro gasto!</p>
+      </div>
+    </div>
+
+    <!-- Gastos Tab -->
+    <div id="tab-gastos" class="tab-panel">
+      <div class="gastos-filters">
+        <input class="inp-search" id="search-input" placeholder="🔍 Buscar..." oninput="renderAll()"/>
+        <select id="sort-select" onchange="renderAll()">
+          <option value="date">↓ Data</option>
+          <option value="value">↓ Valor</option>
+        </select>
+      </div>
+      <div class="cat-pills" id="cat-pills"></div>
+      <div class="expense-list" id="expense-list"></div>
+      <div class="expense-footer">
+        <span class="expense-count" id="expense-count">0 transações</span>
+        <span class="expense-total" id="expense-total">Total: R$ 0,00</span>
+      </div>
+    </div>
+
+    <!-- Metas Tab -->
+    <div id="tab-metas" class="tab-panel">
+      <div class="metas-header">
+        <p class="metas-count" id="metas-count">0 metas ativas</p>
+        <button class="btn-new-goal" onclick="openGoalModal()">+ Nova meta</button>
+      </div>
+      <div class="goals-grid" id="goals-grid"></div>
+      <div id="empty-metas" class="empty-state" style="display:none;">
+        <div class="icon">🎯</div>
+        <h3 style="color:#444;">Nenhuma meta criada ainda</h3>
+        <p>Crie sua primeira meta de economia!</p>
+      </div>
+    </div>
+
+    <!-- AI Tab -->
+    <div id="tab-ai" class="tab-panel">
+      <div class="ai-tab">
+        <div class="ai-header">
+          <div class="ai-header-inner">
+            <div class="ai-avatar">🤖</div>
+            <div>
+              <div class="ai-name">Rico — Consultor Financeiro</div>
+              <div class="ai-sub" id="ai-sub">Olá! Conheço seus gastos. Pergunte à vontade.</div>
+            </div>
+            <button class="btn-clear-chat" onclick="clearChat()" id="btn-clear-chat" style="display:none;">Limpar</button>
+          </div>
+        </div>
+        <div class="ai-messages" id="ai-messages">
+          <div class="ai-suggestions" id="ai-suggestions">
+            <p>Sugestões:</p>
+            <div class="ai-suggestions-btns">
+              <button class="btn-suggestion" onclick="setAiInput('Onde estou gastando mais?')">Onde estou gastando mais?</button>
+              <button class="btn-suggestion" onclick="setAiInput('Como reduzir gastos em 20%?')">Como reduzir gastos em 20%?</button>
+              <button class="btn-suggestion" onclick="setAiInput('Meu orçamento está saudável?')">Meu orçamento está saudável?</button>
+              <button class="btn-suggestion" onclick="setAiInput('Qual categoria cortar primeiro?')">Qual categoria cortar primeiro?</button>
+              <button class="btn-suggestion" onclick="setAiInput('Dicas para economizar')">Dicas para economizar</button>
+            </div>
+          </div>
+        </div>
+        <div class="ai-input-row">
+          <input id="ai-input" placeholder="Pergunte sobre seus gastos..." onkeydown="if(event.key==='Enter'&&!event.shiftKey)sendAI()"/>
+          <button class="btn-send inactive" id="btn-send" onclick="sendAI()">Enviar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Nav -->
+  <div class="bottom-nav">
+    <button class="nav-btn active" data-tab="dashboard" onclick="setTab('dashboard')"><span class="nav-icon">📊</span>Dashboard</button>
+    <button class="nav-btn" data-tab="gastos" onclick="setTab('gastos')"><span class="nav-icon">💸</span>Gastos</button>
+    <button class="nav-btn" data-tab="metas" onclick="setTab('metas')"><span class="nav-icon">🎯</span>Metas</button>
+    <button class="nav-btn" data-tab="ai" onclick="setTab('ai')"><span class="nav-icon">✨</span>Rico IA</button>
+  </div>
+</div>
+
+<!-- ── MODALS ── -->
+
+<!-- Add Expense Modal -->
+<div class="modal-overlay hidden" id="modal-add">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h2 class="modal-title">Novo Gasto Detalhado</h2>
+      <button class="modal-close" onclick="closeModal('modal-add')">×</button>
+    </div>
+    <div class="form-group"><label class="form-label">Descrição</label><input class="inp" id="add-desc" placeholder="Ex: Mercado extra"/></div>
+    <div class="form-group"><label class="form-label">Valor (R$)</label><input class="inp" id="add-value" placeholder="0,00" type="text"/></div>
+    <div class="form-group"><label class="form-label">Categoria</label><select class="inp" id="add-category"></select></div>
+    <div class="form-group"><label class="form-label">Data</label><input class="inp" id="add-date" type="date"/></div>
+    <div class="form-group"><label class="form-label">Nota (opcional)</label><input class="inp" id="add-note" placeholder="Detalhes..."/></div>
+    <div class="form-group"><label class="checkbox-label"><input type="checkbox" id="add-recurring"/> 🔁 Despesa recorrente mensal</label></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('modal-add')">Cancelar</button>
+      <button class="btn-save" onclick="saveExpense()">Salvar Gasto</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Expense Modal -->
+<div class="modal-overlay hidden" id="modal-edit">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h2 class="modal-title">Editar Gasto</h2>
+      <button class="modal-close" onclick="closeModal('modal-edit')">×</button>
+    </div>
+    <div class="form-group"><label class="form-label">Descrição</label><input class="inp" id="edit-desc"/></div>
+    <div class="form-group"><label class="form-label">Valor (R$)</label><input class="inp" id="edit-value" type="text"/></div>
+    <div class="form-group"><label class="form-label">Categoria</label><select class="inp" id="edit-category"></select></div>
+    <div class="form-group"><label class="form-label">Nota</label><input class="inp" id="edit-note"/></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('modal-edit')">Cancelar</button>
+      <button class="btn-save-edit" onclick="saveEdit()">Salvar Edição</button>
+    </div>
+  </div>
+</div>
+
+<!-- Goal Modal -->
+<div class="modal-overlay hidden" id="modal-goal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h2 class="modal-title">Nova Meta</h2>
+      <button class="modal-close" onclick="closeModal('modal-goal')">×</button>
+    </div>
+    <div class="form-group"><label class="form-label">Nome da meta</label><input class="inp" id="goal-name" placeholder="Ex: Viagem para a praia"/></div>
+    <div class="form-group"><label class="form-label">Valor alvo (R$)</label><input class="inp" id="goal-target" placeholder="0,00"/></div>
+    <div class="form-group"><label class="form-label">Já guardei (R$)</label><input class="inp" id="goal-saved" placeholder="0,00"/></div>
+    <div class="form-group"><label class="form-label">Prazo</label><input class="inp" id="goal-deadline" type="date"/></div>
+    <div class="form-group">
+      <label class="form-label">Ícone</label>
+      <div class="icon-picker" id="icon-picker"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('modal-goal')">Cancelar</button>
+      <button class="btn-save-goal" onclick="saveGoal()">Salvar Meta</button>
+    </div>
+  </div>
+</div>
+
+<!-- Budget Modal -->
+<div class="modal-overlay hidden" id="modal-budget">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h2 class="modal-title">Orçamento Mensal</h2>
+      <button class="modal-close" onclick="closeModal('modal-budget')">×</button>
+    </div>
+    <p style="font-size:13px;color:#666;margin-bottom:16px;">Defina quanto você pode gastar por mês.</p>
+    <div class="form-group"><label class="form-label">Orçamento (R$)</label><input class="inp" id="budget-input" placeholder="5000"/></div>
+    <div class="budget-presets" id="budget-presets"></div>
+    <button class="btn-save" style="width:100%;" onclick="saveBudget()">Salvar</button>
+  </div>
+</div>
+
+<!-- Profile Modal -->
+<div class="modal-overlay hidden" id="modal-profile">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h2 class="modal-title">Minha Conta</h2>
+      <button class="modal-close" onclick="closeModal('modal-profile')">×</button>
+    </div>
+    <div class="profile-avatar-center">
+      <div class="profile-avatar-large" id="profile-avatar-large"></div>
+      <div class="profile-name" id="profile-name"></div>
+      <div class="profile-email" id="profile-email"></div>
+      <div class="profile-provider" id="profile-provider"></div>
+    </div>
+    <div class="profile-stats">
+      <div class="profile-stat">
+        <span class="profile-stat-label">Total de gastos cadastrados</span>
+        <span class="profile-stat-val" id="profile-total-count" style="color:var(--orange);"></span>
+      </div>
+      <div class="profile-stat">
+        <span class="profile-stat-label">Total gasto (este mês)</span>
+        <span class="profile-stat-val" id="profile-month-total" style="color:var(--cyan);"></span>
+      </div>
+      <div class="profile-stat">
+        <span class="profile-stat-label">Metas ativas</span>
+        <span class="profile-stat-val" id="profile-goals-count" style="color:var(--green);"></span>
+      </div>
+    </div>
+    <p class="profile-created" id="profile-created"></p>
+    <button class="btn-logout" onclick="doLogout()">Sair da conta</button>
+  </div>
+</div>
+
+<!-- Clear All Modal -->
+<div class="modal-overlay hidden" id="modal-clear">
+  <div class="clear-all-box">
+    <div class="clear-all-icon">🗑️</div>
+    <h2 class="clear-all-title">Apagar tudo?</h2>
+    <p class="clear-all-desc">Esta ação irá remover todos os seus gastos registrados. Não pode ser desfeita.</p>
+    <div class="clear-all-actions">
+      <button class="btn-cancel-clear" onclick="closeModal('modal-clear')">Cancelar</button>
+      <button class="btn-confirm-clear" onclick="clearAll()">Apagar tudo</button>
+    </div>
+  </div>
+</div>
+<script src="./script.js">
+</script>
+</body>
+</html>
